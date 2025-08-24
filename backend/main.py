@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from config import Settings
+from config import settings
 from api import chat
 
 MODE = "normal"

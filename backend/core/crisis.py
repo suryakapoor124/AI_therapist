@@ -44,7 +44,3 @@ def check_crisis(user_text: str) -> dict:
 
 
 
-print(check_crisis("I want to die"))      # Should be True
-print(check_crisis("I want to die."))     # Currently False
-
-

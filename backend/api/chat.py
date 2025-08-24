@@ -2,9 +2,7 @@ from fastapi import APIRouter , UploadFile , File , Form
 from pydantic import BaseModel
 import os
 
-
 from core.crisis import check_crisis
-from core.gpt import generate_reply
 
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -12,7 +10,6 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 
 class Text(BaseModel):
     message: str
-    session_id: str | None= None
 
 
 
@@ -21,25 +18,21 @@ def chat_text(payload: Text):
 
     
     c = check_crisis(payload.message)
-
-   
-    reply = generate_reply(payload.message, crisis=c["crisis"])
+    
 
     
     return {
         "reply_text": reply,
         "reply_audio_url": None,
         "crisis": c["crisis"],
-        "banner": c["banner"],
-        "session_id": payload.session_id,
+        "banner": c["banner"]
     }
 
 
 
 @router.post("/voice")
 async def chat_voice(
-    audio: UploadFile = File(...) , 
-    session_id: str | None = Form(default=None)
+    audio: UploadFile = File(...)
 ):  
          # Make sure uploads folder exists
     upload_dir = "uploads"
@@ -55,6 +48,5 @@ async def chat_voice(
         "reply_audio_url": None,
         "crisis": False,
         "banner": None,
-        "session_id": session_id,
         "saved_path": file_path
     }
