@@ -3,50 +3,82 @@ from pydantic import BaseModel
 import os
 
 from core.crisis import check_crisis
-
+from core.gpt import generate_reply   
+from core.stt import transcribe_audio
+from core.tts import synthesize_speech
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-
-class Text(BaseModel):
-    message: str
-
+class chat(BaseModel):
+    user_input: str
+    is_first: bool = False
 
 
 @router.post("/text")
-def chat_text(payload: Text):
+async def chat_text(payload: chat):
+    """
+    Handles text input from user:
+    - run crisis detection
+    - generate GPT reply
+    - generate TTS (base64)
+    - package JSON response
+    """
+    crisis_result = check_crisis(payload.user_input)
+    crisis_flag = crisis_result["crisis"]
 
-    
-    c = check_crisis(payload.message)
-    
+    reply_text = generate_reply(payload.user_input, crisis=crisis_flag, is_first=payload.is_first)
 
-    
+    # 🔹 generate TTS
+    reply_audio_base64 = synthesize_speech(reply_text)
+
     return {
-        "reply_text": reply,
-        "reply_audio_url": None,
-        "crisis": c["crisis"],
-        "banner": c["banner"]
+        "reply_text": reply_text,
+        "reply_audio_base64": reply_audio_base64,   # ✅ added TTS here
+        "crisis": crisis_flag,
+        "banner": {
+            "message": "It sounds like you might be going through a really difficult time. You're not alone.",
+            "helpline": {
+                "india": "Call 9152987821 (Vandrevala Foundation Helpline)",
+                "international": "Find your local helpline at https://findahelpline.com"
+            }
+        } if crisis_flag else None,
+        "session_id": None
     }
 
 
-
 @router.post("/voice")
-async def chat_voice(
-    audio: UploadFile = File(...)
-):  
-         # Make sure uploads folder exists
-    upload_dir = "uploads"
-    os.makedirs(upload_dir, exist_ok=True)
+async def chat_voice(file: UploadFile = File(...), is_first: bool = False):
+    """
+    Handles voice input:
+    - transcribe audio -> text
+    - crisis detection
+    - GPT reply
+    - generate TTS (base64)
+    - returns structured JSON
+    """
+    user_text = transcribe_audio(file)
 
-    # Save the uploaded file
-    file_path = os.path.join(upload_dir, audio.filename)
-    with open(file_path, "wb") as f:
-        f.write(await audio.read())
+    if not user_text:
+        return {
+            "reply_text": "Sorry, I couldn’t understand the audio. Could you try again?",
+            "reply_audio_base64": None,
+            "crisis": False,
+            "banner": None,
+            "session_id": None
+        }
+
+    crisis_result = check_crisis(user_text)
+    crisis_flag = crisis_result["crisis"]
+
+    reply_text = generate_reply(user_text, crisis=crisis_flag, is_first=is_first)
+
+    # 🔹 generate TTS
+    reply_audio_base64 = synthesize_speech(reply_text)
 
     return {
-        "reply_text": "This is a placeholder reply from voice input.",
-        "reply_audio_url": None,
-        "crisis": False,
-        "banner": None,
-        "saved_path": file_path
+        "reply_text": reply_text,
+        "reply_audio_base64": reply_audio_base64,   # ✅ added TTS here
+        "crisis": crisis_flag,
+        "banner": crisis_result["banner"],
+        "session_id": None
     }
