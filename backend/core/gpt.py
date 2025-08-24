@@ -42,9 +42,4 @@ def generate_reply(user_text: str, crisis: bool) -> str:
         )
         return (completion.choices[0].message.content or "").strip()
     except Exception:
-   
-        if crisis:
-            return ("I'm really glad you told me. You're not alone. "
-                    "If you're in immediate danger, please call your local emergency number. "
-                    "Would talking through what you're feeling right now help?")
-        return "I'm here with you. Tell me a bit more about what’s on your mind."
+        return "I'm sorry, I'm having trouble responding right now."

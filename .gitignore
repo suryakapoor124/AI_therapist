@@ -7,3 +7,4 @@ pycache/
 # Backend
 backend/.env
 backend/__pycache__/
+backend/uploads/
