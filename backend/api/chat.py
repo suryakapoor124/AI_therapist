@@ -28,20 +28,13 @@ async def chat_text(payload: chat):
 
     reply_text = generate_reply(payload.user_input, crisis=crisis_flag, is_first=payload.is_first)
 
-    # 🔹 generate TTS
     reply_audio_base64 = synthesize_speech(reply_text)
 
     return {
         "reply_text": reply_text,
-        "reply_audio_base64": reply_audio_base64,   # ✅ added TTS here
+        "reply_audio_base64": reply_audio_base64,  
         "crisis": crisis_flag,
-        "banner": {
-            "message": "It sounds like you might be going through a really difficult time. You're not alone.",
-            "helpline": {
-                "india": "Call 9152987821 (Vandrevala Foundation Helpline)",
-                "international": "Find your local helpline at https://findahelpline.com"
-            }
-        } if crisis_flag else None,
+        "banner": crisis_result["banner"],
         "session_id": None
     }
 
@@ -77,7 +70,7 @@ async def chat_voice(file: UploadFile = File(...), is_first: bool = False):
 
     return {
         "reply_text": reply_text,
-        "reply_audio_base64": reply_audio_base64,   # ✅ added TTS here
+        "reply_audio_base64": reply_audio_base64,  
         "crisis": crisis_flag,
         "banner": crisis_result["banner"],
         "session_id": None
