@@ -27,8 +27,7 @@ def synthesize_speech(text: str) -> str | None:
             speaker="anushka",
             model="bulbul:v2"
         )
-        return tts_response.audios[0]   # ✅ raw base64 audio (faster)
-
+        return tts_response.audios[0]  
     except Exception as e:
         print(f"[TTS] Error: {e}")
         return None
