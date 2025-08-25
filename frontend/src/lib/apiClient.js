@@ -1,39 +1,40 @@
-const BASE = import.meta.env.VITE_API_BASE_URL
-const USE_MOCK = !BASE // if no env set, use mock replies for local dev
+import axios from 'axios'
 
+// Backend base URL
+const BASE_URL = 'http://localhost:8000'
 
-async function http(path, { method = 'GET', headers = {}, body } = {}) {
-    const url = `${BASE}${path}`
-    const res = await fetch(url, { method, headers, body })
-    if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    return res.json()
-}
-
-
-export async function sendTextMessage(text) {
-    if (USE_MOCK) {
-        await wait(500)
-        return "Thanks for sharing that. I'm here with you—what's one small step we could explore together?"
+// --------------------- TEXT ---------------------
+export async function sendTextMessage(text, isFirst = false) {
+    try {
+        const response = await axios.post(`${BASE_URL}/chat/text`, {
+            user_input: text,
+            is_first: isFirst
+        })
+        // Backend returns: { reply_text, reply_audio_base64, crisis, banner, session_id }
+        return response.data
+    } catch (error) {
+        console.error('Error sending text message:', error)
+        throw error
     }
-    const data = await http('/chat/text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
-    })
-    // expected { reply: string }
-    return data.reply
 }
 
+// --------------------- VOICE ---------------------
+export async function transcribeAudio(blob, isFirst = false) {
+    try {
+        const formData = new FormData()
+        formData.append('file', blob, 'audio.wav')       // audio file
+        formData.append('is_first', isFirst ? 'true' : 'false')  // send is_first
 
-export async function transcribeAudio(blob) {
-    if (USE_MOCK) {
-        await wait(800)
-        return { transcript: 'I feel a bit anxious today.', reply: 'That makes sense. What do you notice in your body when anxiety shows up?' }
+        const response = await axios.post(`${BASE_URL}/chat/voice`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        })
+
+        // Backend returns: { reply_text, reply_audio_base64, crisis, banner, session_id }
+        return response.data
+    } catch (error) {
+        console.error('Error transcribing audio:', error)
+        throw error
     }
-    const fd = new FormData()
-    fd.append('audio', blob, 'clip.webm')
-    return http('/chat/voice', { method: 'POST', body: fd })
 }
-
-
-function wait(ms) { return new Promise((r) => setTimeout(r, ms)) }
