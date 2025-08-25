@@ -14,3 +14,9 @@ backend/models/__pycache__/
 backend/uploads/
 
 
+
+#frontend 
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
