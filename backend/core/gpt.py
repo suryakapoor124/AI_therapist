@@ -5,21 +5,24 @@ from typing import Optional
 from openai import OpenAI
 from config import settings
 
-# --- Prompts (kept tight and purposeful) ---
-
-GREETING_INSTRUCTION = (
-    "If this is the first message, greet the user warmly in 1–2 short lines, "
-    "set a calm tone, and ask exactly one open, gentle question to start."
-)
+# --- Prompts ---
 
 BASE_PERSONA = (
-    "You are an AI therapist. Be emotionally aware, precise, and concise (1–3 short sentences). "
-    "Reflect feelings, avoid clichés, and ask thoughtful questions sparingly."
+    "You are an AI therapist. Be emotionally aware, precise, and concise. "
+    "Always keep your response under 3 short sentences and under 250 characters. "
+    "Reflect feelings, avoid clichés, and ask at most one thoughtful question."
 )
 
-CRISIS_SYSTEM = (
+GREETING_PERSONA = (
+    "If this is the first message, greet warmly in 1–2 short lines and ask exactly one open, gentle question. "
+    "Keep responses under 3 short sentences and under 250 characters.\n\n"
+    + BASE_PERSONA
+)
+
+CRISIS_PERSONA = (
     "You are a crisis-support therapist. Prioritize safety, validation, and calm, brief guidance. "
-    "If the user is in immediate danger, advise contacting local emergency services."
+    "If the user is in immediate danger, advise contacting local emergency services. "
+    "Always keep your response under 3 short sentences and under 250 characters."
 )
 
 # --- Client singleton ---
@@ -27,64 +30,65 @@ CRISIS_SYSTEM = (
 _client: Optional[OpenAI] = None
 
 def _get_client() -> OpenAI:
+    """Return a shared OpenAI client configured for HuggingFace router."""
     global _client
     if _client is None:
-        # create even if token missing; we'll fail gracefully in generate_reply
         _client = OpenAI(
             base_url=settings.HF_BASE_URL,
             api_key=settings.HF_TOKEN or "missing"
         )
     return _client
 
-# --- Status helper for quick debugging ---
-
 def gpt_status() -> dict:
-    """Quick introspection to verify config without making a network call."""
+    """Quick check to verify GPT config."""
     return {
         "configured": bool(settings.HF_TOKEN),
         "base_url": settings.HF_BASE_URL,
         "model": settings.HF_MODEL,
     }
 
-# --- Main entry point ---
+# --- Main reply generator ---
 
 def generate_reply(user_text: str, *, crisis: bool = False, is_first: bool = False) -> str:
-    """
-    Returns a short therapist-style reply.
-    - crisis=True  -> uses crisis prompt
-    - is_first=True -> prepends greeting instruction
-    """
+    """Generate a therapist-style reply from user input."""
     if not user_text or not user_text.strip():
         return "I’m here with you. What would you like to share?"
 
-    # Choose system prompt
+    # Pick system prompt
     if crisis:
-        system_prompt = CRISIS_SYSTEM
+        system_prompt = CRISIS_PERSONA
+    elif is_first:
+        system_prompt = GREETING_PERSONA
     else:
-        system_prompt = f"{GREETING_INSTRUCTION}\n\n{BASE_PERSONA}" if is_first else BASE_PERSONA
+        system_prompt = BASE_PERSONA
 
-    # If token missing, fail soft with a supportive fallback
+    # If no token, soft fallback
     if not settings.HF_TOKEN:
-        return "I’m with you. Tell me a bit more so I can understand what matters most right now."
-
-    client = _get_client()
+        return "I’m here with you. What feels heaviest right now?"
 
     try:
+        client = _get_client()
         resp = client.chat.completions.create(
             model=settings.HF_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_text},
             ],
-            temperature=0.6,
-            max_tokens=220,
         )
-        text = (resp.choices[0].message.content or "").strip()
-        return text or "I’m here and listening."
+        content = resp.choices[0].message.content
+        if not content:
+            return "I’m here with you. Could you tell me a bit more about what you’re feeling?"
+        return content.strip()
+
     except Exception:
-        # Soft fallback on any provider/network error
+        import traceback
+        print("[GPT ERROR] Exception during completion:")
+        traceback.print_exc()
+
         if crisis:
-            return ("I’m really glad you told me. You’re not alone. "
-                    "If you’re in immediate danger, please contact your local emergency number. "
-                    "Would it help to share what feels most urgent right now?")
+            return (
+                "I’m really glad you told me. You’re not alone. "
+                "If you’re in immediate danger, please contact your local emergency number. "
+                "Would it help to share what feels most urgent right now?"
+            )
         return "I’m here with you. What feels heaviest at the moment?"

@@ -23,7 +23,7 @@ def synthesize_speech(text: str) -> str | None:
     try:
         tts_response = sarvam_client.text_to_speech.convert(
             text=text,
-            target_language_code="en-IN",   # switch to "en-IN" if mostly English
+            target_language_code="hi-IN",   # switch to "en-IN" if mostly English
             speaker="anushka",
             model="bulbul:v2"
         )

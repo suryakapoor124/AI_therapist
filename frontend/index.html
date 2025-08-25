@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Therapist — Minimal Tester</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; }
+    textarea { width: 100%; min-height: 110px; }
+    button { padding: 8px 14px; margin-top: 8px; }
+    .row { margin: 12px 0; }
+    .banner { background: #ffeaea; border: 1px solid #ffb3b3; padding: 10px; border-radius: 8px; }
+    .muted { color: #666; font-size: 12px; }
+    #reply { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>AI Therapist — Backend Tester</h1>
+
+  <div class="row">
+    <label for="user_input"><strong>Your message</strong></label><br/>
+    <textarea id="user_input" placeholder="Type how you're feeling..."></textarea>
+  </div>
+
+  <div class="row">
+    <label><input type="checkbox" id="is_first" /> is_first</label>
+    <button id="send">Send</button>
+    <span id="status" class="muted"></span>
+  </div>
+
+  <div class="row">
+    <h3>Reply</h3>
+    <div id="reply">—</div>
+  </div>
+
+  <div class="row" id="banner" style="display:none;"></div>
+
+  <div class="row">
+    <h3>Audio</h3>
+    <audio id="audio" controls></audio>
+    <div class="muted">Plays the base64 audio returned by /chat/text.</div>
+  </div>
+
+  <script>
+    // 👉 Adjust if your backend runs elsewhere/another port
+    const API_BASE = "http://127.0.0.1:8000";
+
+    const el = {
+      input:  document.getElementById("user_input"),
+      first:  document.getElementById("is_first"),
+      send:   document.getElementById("send"),
+      status: document.getElementById("status"),
+      reply:  document.getElementById("reply"),
+      audio:  document.getElementById("audio"),
+      banner: document.getElementById("banner"),
+    };
+
+    async function callChatText() {
+      const user_input = el.input.value.trim();
+      const is_first = el.first.checked;
+
+      if (!user_input) {
+        el.reply.textContent = "Please type something first.";
+        return;
+      }
+
+      el.send.disabled = true;
+      el.status.textContent = "Sending...";
+      el.reply.textContent = "—";
+      el.banner.style.display = "none";
+      el.banner.innerHTML = "";
+      el.audio.removeAttribute("src");
+      el.audio.load();
+
+      try {
+        const res = await fetch(`${API_BASE}/chat/text`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_input, is_first })
+        });
+
+        if (!res.ok) {
+          const msg = `HTTP ${res.status}`;
+          el.reply.textContent = "Request failed: " + msg;
+          return;
+        }
+
+        const data = await res.json();
+
+        // Text reply
+        el.reply.textContent = data.reply_text ?? "(no text)";
+
+        // Crisis banner
+        if (data.crisis && data.banner) {
+          el.banner.style.display = "block";
+          el.banner.className = "row banner";
+          el.banner.innerHTML = `
+            <strong>${data.banner.message}</strong><br/>
+            <div class="muted">
+              India: ${data.banner.helpline?.india || "-"}<br/>
+              International: ${data.banner.helpline?.international || "-"}
+            </div>
+          `;
+        }
+
+        // Audio (base64) → data URL
+        if (data.reply_audio_base64) {
+          // Sarvam returns WAV base64 in our setup
+          el.audio.src = `data:audio/wav;base64,${data.reply_audio_base64}`;
+          try { await el.audio.play(); } catch { /* user gesture may be needed */ }
+        } else {
+          el.audio.removeAttribute("src");
+          el.audio.load();
+        }
+      } catch (e) {
+        el.reply.textContent = "Error: " + (e?.message || e);
+      } finally {
+        el.status.textContent = "";
+        el.send.disabled = false;
+      }
+    }
+
+    el.send.addEventListener("click", callChatText);
+  </script>
+</body>
+</html>
