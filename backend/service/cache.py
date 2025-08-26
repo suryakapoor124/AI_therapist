@@ -16,3 +16,8 @@ def append_message(session_id: str, role: str, content: str) -> None:
 def clear(session_id: str) -> None:
     """Drop a session from memory."""
     _store.pop(session_id, None)
+
+def session_exists(session_id: str) -> bool:
+    """Check if a session already exists"""
+    history = get_history(session_id)
+    return len(history) > 0

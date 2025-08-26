@@ -21,6 +21,8 @@ export default function VoicePanel({ active }) {
             setStatus('processing')
             setErrorMessage('')
             try {
+                //only first if no session exists
+                const isFirst = !sessionId
                 const data = await transcribeAudio(blob, false, sessionId)
                 setSessionId(data.session_id)
                 const botMsg = {
