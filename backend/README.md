@@ -47,7 +47,7 @@ HF_MODEL=openai/gpt-oss-20b:fireworks-ai
 
 5. Start the server:
 ```bash
-uvicorn main:app --reload --port 8000
+fastapi dev main.py
 ```
 
 The API will be available at `http://localhost:8000`
