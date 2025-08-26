@@ -15,7 +15,7 @@ BASE_PERSONA = (
 
 GREETING_PERSONA = (
     "If this is the first message, greet warmly in 1–2 short lines and ask exactly one open, gentle question. "
-    "Keep responses under 3 short sentences and under 250 characters.\n\n"
+    "Keep responses under 4-5 short sentences and under 500 characters.\n\n"
     + BASE_PERSONA
 )
 
