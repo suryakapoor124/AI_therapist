@@ -3,8 +3,10 @@ import { Mic } from 'lucide-react'
 import useRecorder from '../hooks/useRecorder'
 import { transcribeAudio } from '../lib/apiClient'
 import Orb from './Orb'
+import useSession from '../hooks/useSession'
 
 export default function VoicePanel({ active }) {
+    const [sessionId, setSessionId] = useSession()
     const [messages, setMessages] = useState([])
     const [status, setStatus] = useState('idle')
     const [errorMessage, setErrorMessage] = useState('')
@@ -19,7 +21,8 @@ export default function VoicePanel({ active }) {
             setStatus('processing')
             setErrorMessage('')
             try {
-                const data = await transcribeAudio(blob, false)
+                const data = await transcribeAudio(blob, false, sessionId)
+                setSessionId(data.session_id)
                 const botMsg = {
                     id: crypto.randomUUID(),
                     role: 'assistant',

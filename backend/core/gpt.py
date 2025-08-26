@@ -49,7 +49,14 @@ def gpt_status() -> dict:
 
 # --- Main reply generator ---
 
-def generate_reply(user_text: str, *, crisis: bool = False, is_first: bool = False) -> str:
+def generate_reply(
+        user_text: str,
+          *,
+        crisis: bool = False,
+        is_first: bool = False,
+        history: list[dict] | None = None, # added history to receive history
+    ) -> str:
+
     """Generate a therapist-style reply from user input."""
     if not user_text or not user_text.strip():
         return "I’m here with you. What would you like to share?"
@@ -68,12 +75,17 @@ def generate_reply(user_text: str, *, crisis: bool = False, is_first: bool = Fal
 
     try:
         client = _get_client()
+        # create message list
+        messages = [{"role": "system", "content": system_prompt}]
+        # append history if any
+        if history:
+            messages.extend(history)
+        messages.append({"role": "user", "content": user_text}) # append user message
+
+        # call HF endpoint
         resp = client.chat.completions.create(
             model=settings.HF_MODEL,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_text},
-            ],
+            messages=messages,
         )
         content = resp.choices[0].message.content
         if not content:

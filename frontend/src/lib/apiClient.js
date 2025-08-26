@@ -4,11 +4,12 @@ import axios from 'axios'
 const BASE_URL = 'http://localhost:8000'
 
 // --------------------- TEXT ---------------------
-export async function sendTextMessage(text, isFirst = false) {
+export async function sendTextMessage(text, isFirst = false, sessionId = null) {
     try {
         const response = await axios.post(`${BASE_URL}/chat/text`, {
             user_input: text,
-            is_first: isFirst
+            is_first: isFirst,
+            session_id: sessionId
         })
         // Backend returns: { reply_text, reply_audio_base64, crisis, banner, session_id }
         return response.data
@@ -19,11 +20,14 @@ export async function sendTextMessage(text, isFirst = false) {
 }
 
 // --------------------- VOICE ---------------------
-export async function transcribeAudio(blob, isFirst = false) {
+export async function transcribeAudio(blob, isFirst = false, sessionId = null) {
     try {
         const formData = new FormData()
         formData.append('file', blob, 'audio.wav')       // audio file
         formData.append('is_first', isFirst ? 'true' : 'false')  // send is_first
+        if (sessionId) {
+            formData.append('session_id', sessionId)
+        }
 
         const response = await axios.post(`${BASE_URL}/chat/voice`, formData, {
             headers: {

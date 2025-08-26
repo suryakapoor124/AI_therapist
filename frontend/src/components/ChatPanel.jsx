@@ -3,8 +3,10 @@ import { Send, Volume2 } from 'lucide-react'
 import MessageBubble from './MessageBubble'
 import { sendTextMessage } from '../lib/apiClient'
 import { motion, AnimatePresence } from 'framer-motion'
+import useSession from '../hooks/useSession'
 
 export default function ChatPanel({ active }) {
+    const [sessionId, setSessionId] = useSession()
     const [messages, setMessages] = useState([])
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
@@ -22,7 +24,8 @@ export default function ChatPanel({ active }) {
 
     async function fetchGreeting() {
         try {
-            const reply = await sendTextMessage('', true)
+            const reply = await sendTextMessage('', true, sessionId)
+            setSessionId(reply.session_id)
             setMessages([{
                 id: crypto.randomUUID(),
                 role: 'assistant',
@@ -54,7 +57,8 @@ export default function ChatPanel({ active }) {
         setLoading(true)
 
         try {
-            const reply = await sendTextMessage(input, false)
+            const reply = await sendTextMessage(input, false, sessionId)
+            setSessionId(reply.session_id)
             setMessages((m) => [...m, {
                 id: crypto.randomUUID(),
                 role: 'assistant',
