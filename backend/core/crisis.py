@@ -3,13 +3,11 @@ from typing import Optional
 
 
 CRISIS_KEYWORDS = [
-    "suicide",
+    "commit suicide",
     "kill myself",
     "end my life",
     "i want to die",
     "can't go on",
-    "hopeless",
-    "depressed",
     "cut myself",
     "hurt myself",
 ]
