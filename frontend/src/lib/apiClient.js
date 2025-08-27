@@ -4,13 +4,15 @@ import axios from 'axios'
 const BASE_URL = 'http://localhost:8000'
 
 // --------------------- TEXT ---------------------
-export async function sendTextMessage(text, isFirst = false) {
+export async function sendTextMessage(text, isFirst = false, sessionId = null) {
     try {
-        const response = await axios.post(`${BASE_URL}/chat/text`, {
+        const payload = {
             user_input: text,
-            is_first: isFirst
-        })
-        // Backend returns: { reply_text, reply_audio_base64, crisis, banner, session_id }
+            is_first: isFirst,
+        }
+        if (sessionId) payload.session_id = sessionId
+
+        const response = await axios.post(`${BASE_URL}/chat/text`, payload)
         return response.data
     } catch (error) {
         console.error('Error sending text message:', error)
@@ -19,19 +21,16 @@ export async function sendTextMessage(text, isFirst = false) {
 }
 
 // --------------------- VOICE ---------------------
-export async function transcribeAudio(blob, isFirst = false) {
+export async function transcribeAudio(blob, isFirst = false, sessionId = null) {
     try {
         const formData = new FormData()
-        formData.append('file', blob, 'audio.wav')       // audio file
-        formData.append('is_first', isFirst ? 'true' : 'false')  // send is_first
+        formData.append('file', blob, 'audio.wav')
+        formData.append('is_first', isFirst ? 'true' : 'false')
+        if (sessionId) formData.append('session_id', sessionId)
 
         const response = await axios.post(`${BASE_URL}/chat/voice`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
+            headers: { 'Content-Type': 'multipart/form-data' },
         })
-
-        // Backend returns: { reply_text, reply_audio_base64, crisis, banner, session_id }
         return response.data
     } catch (error) {
         console.error('Error transcribing audio:', error)

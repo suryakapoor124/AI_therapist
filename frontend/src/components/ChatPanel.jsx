@@ -24,15 +24,14 @@ export default function ChatPanel({ active }) {
 
     async function fetchGreeting() {
         try {
-            // only set is_first=true  if no existing session
             const isFirst = !sessionId
-            const reply = await sendTextMessage('', true, sessionId) // Pass sessionId
+            const reply = await sendTextMessage('', isFirst, sessionId)
             setSessionId(reply.session_id)
             setMessages([{
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 text: reply.reply_text,
-                reply_audio_base64: reply.reply_audio_base64,  // Add this
+                reply_audio_base64: reply.reply_audio_base64,
                 time: new Date(),
             }])
         } catch (err) {

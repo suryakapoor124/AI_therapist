@@ -23,7 +23,7 @@ export default function VoicePanel({ active }) {
             try {
                 //only first if no session exists
                 const isFirst = !sessionId
-                const data = await transcribeAudio(blob, false, sessionId)
+                const data = await transcribeAudio(blob, isFirst, sessionId)
                 setSessionId(data.session_id)
                 const botMsg = {
                     id: crypto.randomUUID(),

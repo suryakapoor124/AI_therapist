@@ -8,6 +8,8 @@ MODE = "normal"
 
 
 
+
+
 app = FastAPI(
     title="Ai therapist",
     description="Entry point for Ai therapist api"
