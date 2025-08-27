@@ -25,7 +25,7 @@ export default function ChatPanel({ active, onCrisis }) {
     async function fetchGreeting() {
         try {
             const isFirst = !sessionId
-            const reply = await sendTextMessage('', true, sessionId)
+            const reply = await sendTextMessage('', isFirst, sessionId)
             setSessionId(reply.session_id)
             setMessages([{
                 id: crypto.randomUUID(),

@@ -23,7 +23,7 @@ export default function VoicePanel({ active, onCrisis }) {
             setErrorMessage('')
             try {
                 const isFirst = !sessionId
-                const data = await transcribeAudio(blob, false, sessionId)
+                const data = await transcribeAudio(blob, isFirst, sessionId)
                 setSessionId(data.session_id)
                 const botMsg = {
                     id: crypto.randomUUID(),
