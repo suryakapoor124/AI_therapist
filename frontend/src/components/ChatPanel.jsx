@@ -105,7 +105,10 @@ export default function ChatPanel({ active, onCrisis }) {
     }
 
     return (
-        <div className="rounded-3xl p-6 border bg-white shadow-lg flex flex-col h-[560px]">
+        <div
+            className={`rounded-3xl p-6 border bg-gradient-to-b from-[#0f0c29] via-[#302b63] to-[#24243e] shadow-lg flex flex-col h-[560px] transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-50 blur-sm'
+                }`}
+        >
             {/* Messages */}
             <div className="flex-1 overflow-y-auto pr-3 space-y-4">
                 <AnimatePresence>

@@ -59,34 +59,38 @@ export default function VoicePanel({ active, onCrisis }) {
     }, [messages])
 
     return (
-        <div className="rounded-3xl p-6 border bg-white shadow-lg flex flex-col h-[560px]">
+        <div
+            className={`rounded-3xl p-6 border bg-gradient-to-b from-[#0f0c29] via-[#302b63] to-[#24243e] shadow-lg flex flex-col h-[560px] transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-50 blur-sm'
+                }`}
+        >
             {/* Scrollable history */}
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-                {messages.map((m) => (
-                    <div key={m.id} className="flex items-start gap-2">
-                        <div className="w-8 h-8 flex-shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 shadow-md" />
-                        <div
-                            className={`p-3 rounded-xl shadow-sm text-sm max-w-[85%] ${m.crisis
-                                ? 'border border-red-300 bg-red-50 text-red-700'
-                                : 'border border-gray-200 bg-gray-50 text-gray-700'
-                                }`}
-                        >
-                            {m.text}
-                            <p className="text-xs text-gray-400 mt-1">
-                                {m.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                        </div>
-                    </div>
-                ))}
-                <div ref={endRef} />
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+    {messages.map((m) => (
+        <div key={m.id} className="flex items-start gap-2">
+            <div className="w-8 h-8 flex-shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 shadow-md" />
+            <div
+                className={`p-3 rounded-xl shadow-lg text-base max-w-[85%] ${
+                    m.crisis
+                        ? 'border border-red-400 bg-gradient-to-r from-red-500 to-red-400 text-white'
+                        : 'border border-gray-300 bg-gradient-to-r from-gray-200 to-gray-100 text-gray-800'
+                }`}
+            >
+                {m.text}
+                <p className="text-xs text-gray-400 mt-1">
+                    {m.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
             </div>
+        </div>
+    ))}
+    <div ref={endRef} />
+</div>
 
             {/* Controls pinned at bottom */}
             <div className="mt-4 flex flex-col items-center justify-center space-y-3 pb-1">
                 <div className="scale-90 sm:scale-100">
                     <Orb active={isRecording} />
                 </div>
-                <p className="text-gray-600 min-h-[24px] text-sm">
+                <p className="text-gray-300 min-h-[24px] text-sm">
                     {isRecording
                         ? 'Listening…'
                         : status === 'processing'
