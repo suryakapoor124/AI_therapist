@@ -60,6 +60,7 @@ async def chat_text(payload: ChatRequest):
         crisis=crisis_flag,
         is_first=is_first,
         history=augmented_history,
+        session_id=session_id,
     )
 
     # --- Save Assistant Reply ---
@@ -128,6 +129,7 @@ async def chat_voice(
         crisis=crisis_flag,
         is_first=is_first,
         history=augmented_history,
+        session_id=session_id,
     )
 
     # --- Save Assistant Reply ---

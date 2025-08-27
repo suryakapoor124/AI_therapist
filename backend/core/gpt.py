@@ -10,16 +10,14 @@ from service.cache import get_summary
 # --- Prompts ---
 
 BASE_PERSONA = (
-    "You are an expert, trauma‑informed therapeutic AI. Be deeply attentive, emotionally precise, and genuinely collaborative. "
-    "Offer concise, meaningful reflections plus one helpful next step or gentle reframe when useful. "
-    "Avoid filler apologies (like 'I’m sorry you feel that way'); instead name the emotion and its nuance. "
-    "Vary style: sometimes reflect, sometimes summarize, sometimes suggest a grounded micro‑skill (breathing, grounding, cognitive reframe), but never overwhelm. "
-    "Only ask a question when it advances clarity or empowers the user— not every turn. "
-    "Do not prematurely redirect to a professional unless there are explicit signs of imminent self‑harm or harm to others; in those cases calmly encourage urgent human support. "
-    "Keep responses usually under 4 short sentences; depth over length. "
-    "Avoid generic sympathy, clichés, and clinical detachment. "
-    "If user shares progress, reinforce strengths succinctly. "
-    "Maintain a steady, respectful, non‑judgmental tone."
+    "You are an expert, trauma‑informed therapeutic AI. Be deeply attentive, emotionally precise, and collaborative. "
+    "Provide concise reflections plus (when useful) one grounded micro‑step or gentle reframe. "
+    "Avoid filler apologies; label nuanced emotion instead. "
+    "Vary technique (reflection, summary, strengths, gentle challenge, coping skill) without sounding scripted. "
+    "Ask a question only when it meaningfully advances understanding. "
+    "Do NOT mention emergency services, hotlines, self‑harm screening, or advise seeing a professional unless the user's message explicitly contains one of these words: suicide, sucide, rape, murder, kill. "
+    "Keep responses typically under 4 short sentences with substance over length. "
+    "Avoid generic sympathy, clichés, and clinical detachment. Reinforce strengths when the user shares progress. Maintain a steady, respectful, non‑judgmental tone."
 )
 
 GREETING_PERSONA = (
@@ -94,10 +92,11 @@ def gpt_status() -> dict:
 def generate_reply(
         user_text: str,
         *,
-    crisis: bool = False,
+        crisis: bool = False,
         is_first: bool = False,
         history: list[dict] | None = None,
-    persona: str | None = None,
+        persona: str | None = None,
+        session_id: str | None = None,
     ) -> str:
     """Generate a therapist-style reply from user input with memory support."""
 
@@ -105,11 +104,24 @@ def generate_reply(
         return "I’m here with you. What would you like to share?"
 
     # Pick system prompt
+    # Dynamic persona heuristic if none explicitly provided and not crisis/first
+    dynamic_persona = None
+    if not crisis and not is_first and not persona:
+        lt = user_text.lower()
+        # Emotion heavy if multiple feeling words
+        emo_words = sum(1 for w in ["sad","low","empty","anxious","angry","ashamed","guilty","numb","tired","overwhelmed"] if w in lt)
+        if emo_words >= 2:
+            dynamic_persona = "emotions"
+        elif any(k in lt for k in ["I accomplished","I managed","I improved","it got better"]):
+            dynamic_persona = "reflection"
+        elif any(k in lt for k in ["boundary","crossed","they keep asking"]):
+            dynamic_persona = "boundaries"
+    chosen_persona = persona or dynamic_persona
+
     if crisis:
         system_prompt = CRISIS_PERSONA
-    elif persona and persona.lower() in PERSONA_MAP and persona.lower() not in ("crisis", "greeting"):
-        # Allow explicit persona override (except crisis/greeting which are controlled by flags)
-        system_prompt = PERSONA_MAP[persona.lower()]
+    elif chosen_persona and chosen_persona.lower() in PERSONA_MAP and chosen_persona.lower() not in ("crisis", "greeting"):
+        system_prompt = PERSONA_MAP[chosen_persona.lower()]
     elif is_first:
         system_prompt = GREETING_PERSONA
     else:
@@ -281,6 +293,8 @@ def generate_reply(
             messages=messages,
         )
         content = resp.choices[0].message.content
+        if content:
+            content = _postprocess_reply(content, history, crisis)
         if not content:
             return "I’m here with you. Could you tell me a bit more about what you’re feeling?"
         return content.strip()
@@ -297,3 +311,47 @@ def generate_reply(
                 "Would it help to share what feels most urgent right now?"
             )
         return "I’m here with you. What feels heaviest at the moment?"
+
+# ----------------- Post Processing Layer -----------------
+
+REFERRAL_BLOCKERS = [
+    re.compile(r"contact (?:a|your) (?:doctor|professional|therapist)", re.IGNORECASE),
+    re.compile(r"reach out to (?:someone|a professional|a hotline)", re.IGNORECASE),
+    re.compile(r"call (?:emergency|911|112)", re.IGNORECASE),
+    re.compile(r"seek professional help", re.IGNORECASE),
+]
+
+CRISIS_ALLOW = {"suicide","sucide","rape","murder","kill"}
+
+def _postprocess_reply(text: str, history: list[dict] | None, crisis: bool) -> str:
+    original = text
+    # Question throttle: if last assistant already asked a question, strip trailing question from new reply
+    if history:
+        last_assistant_q = None
+        for m in reversed(history):
+            if m.get("role") == "assistant":
+                last_assistant_q = "?" in m.get("content","")
+                break
+        if last_assistant_q and text.count("?") > 0:
+            # remove last question sentence
+            parts = re.split(r"(?<=[?.!])\s+", text.strip())
+            parts = [p for p in parts if p]
+            # drop last segment containing '?'
+            for i in range(len(parts)-1, -1, -1):
+                if "?" in parts[i]:
+                    del parts[i]
+                    break
+            if parts:
+                text = " ".join(parts).strip()
+    # Referral filtering if not crisis
+    if not crisis:
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        filtered = []
+        for s in sentences:
+            if any(p.search(s) for p in REFERRAL_BLOCKERS):
+                continue
+            filtered.append(s)
+        if filtered:
+            text = " ".join(filtered).strip()
+    # Length trim safety
+    return text.strip() or original
