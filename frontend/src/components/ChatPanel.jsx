@@ -5,14 +5,14 @@ import { sendTextMessage } from '../lib/apiClient'
 import { motion, AnimatePresence } from 'framer-motion'
 import useSession from '../hooks/useSession'
 
-export default function ChatPanel({ active }) {
+export default function ChatPanel({ active, onCrisis }) {
     const [sessionId, setSessionId] = useSession()
     const [messages, setMessages] = useState([])
     const [input, setInput] = useState('')
     const [loading, setLoading] = useState(false)
     const endRef = useRef(null)
     const hasFetched = useRef(false)
-    const audioRef = useRef(null) // Ref to manage audio playback
+    const audioRef = useRef(null)
 
     // Fetch greeting only once
     useEffect(() => {
@@ -24,17 +24,20 @@ export default function ChatPanel({ active }) {
 
     async function fetchGreeting() {
         try {
-            // only set is_first=true  if no existing session
             const isFirst = !sessionId
-            const reply = await sendTextMessage('', true, sessionId) // Pass sessionId
+            const reply = await sendTextMessage('', true, sessionId)
             setSessionId(reply.session_id)
             setMessages([{
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 text: reply.reply_text,
-                reply_audio_base64: reply.reply_audio_base64,  // Add this
+                reply_audio_base64: reply.reply_audio_base64,
                 time: new Date(),
             }])
+
+            if (reply.crisis) {
+                onCrisis?.(reply.reply_text)
+            }
         } catch (err) {
             console.error('Failed to load greeting:', err)
         }
@@ -65,9 +68,13 @@ export default function ChatPanel({ active }) {
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 text: reply.reply_text,
-                reply_audio_base64: reply.reply_audio_base64,  // Add this
+                reply_audio_base64: reply.reply_audio_base64,
                 time: new Date(),
             }])
+
+            if (reply.crisis) {
+                onCrisis?.(reply.reply_text)
+            }
         } catch (err) {
             console.error(err)
             setMessages((m) => [...m, {
@@ -83,16 +90,13 @@ export default function ChatPanel({ active }) {
 
     function toggleAudioPlayback(replyAudioBase64) {
         if (audioRef.current) {
-            // If audio is already playing, stop it
             audioRef.current.pause()
             audioRef.current = null
         } else if (replyAudioBase64) {
-            // Decode base64 and play audio
             const audio = new Audio(`data:audio/wav;base64,${replyAudioBase64}`)
             audioRef.current = audio
             audio.play()
             audio.onended = () => {
-                // Reset audioRef when playback ends
                 audioRef.current = null
             }
         } else {
@@ -102,7 +106,7 @@ export default function ChatPanel({ active }) {
 
     return (
         <div className="rounded-3xl p-6 border bg-white shadow-lg flex flex-col h-[560px]">
-            {/* Messages (scroll inside) */}
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto pr-3 space-y-4">
                 <AnimatePresence>
                     {messages.map((m) => (
@@ -113,11 +117,8 @@ export default function ChatPanel({ active }) {
                             exit={{ opacity: 0 }}
                             className={`flex items-start gap-2 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            {/* AI avatar */}
                             {m.role === 'assistant' && (
-                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold">
-                                    AI
-                                </div>
+                                <div className="w-8 h-8 flex-shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 shadow-md" />
                             )}
 
                             <div>
@@ -127,7 +128,6 @@ export default function ChatPanel({ active }) {
                                 </p>
                             </div>
 
-                            {/* Play voice button */}
                             {m.role === 'assistant' && (
                                 <button
                                     onClick={() => toggleAudioPlayback(m.reply_audio_base64)}
@@ -138,9 +138,8 @@ export default function ChatPanel({ active }) {
                                 </button>
                             )}
 
-                            {/* User avatar */}
                             {m.role === 'user' && (
-                                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-bold">
+                                <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full bg-gray-200 text-gray-600 text-xs font-bold">
                                     U
                                 </div>
                             )}
