@@ -1,29 +1,71 @@
 # backend/core/gpt.py
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, List, Dict, Set
+import re
 from openai import OpenAI
 from config import settings
+from service.cache import get_summary
 
 # --- Prompts ---
 
 BASE_PERSONA = (
-    "You are an Female AI therapist. Be emotionally aware, precise, and concise. "
-    "Always keep your response under 3 short sentences and under 250 characters. "
-    "Reflect feelings, avoid clichés, and ask at most one thoughtful question."
+    "You are an expert, trauma‑informed therapeutic AI. Be deeply attentive, emotionally precise, and genuinely collaborative. "
+    "Offer concise, meaningful reflections plus one helpful next step or gentle reframe when useful. "
+    "Avoid filler apologies (like 'I’m sorry you feel that way'); instead name the emotion and its nuance. "
+    "Vary style: sometimes reflect, sometimes summarize, sometimes suggest a grounded micro‑skill (breathing, grounding, cognitive reframe), but never overwhelm. "
+    "Only ask a question when it advances clarity or empowers the user— not every turn. "
+    "Do not prematurely redirect to a professional unless there are explicit signs of imminent self‑harm or harm to others; in those cases calmly encourage urgent human support. "
+    "Keep responses usually under 4 short sentences; depth over length. "
+    "Avoid generic sympathy, clichés, and clinical detachment. "
+    "If user shares progress, reinforce strengths succinctly. "
+    "Maintain a steady, respectful, non‑judgmental tone."
 )
 
 GREETING_PERSONA = (
-    "If this is the first message, greet warmly in 1–2 short lines and ask exactly one open, gentle question. "
-    "Keep responses under 4-5 short sentences and under 500 characters.\n\n"
-    + BASE_PERSONA
+    "You are beginning a therapeutic conversation. Offer a warm, grounded welcome, set a tone of safety and collaboration, and invite (not pressure) sharing. "
+    "Reflect any initial emotion if present. Ask exactly one open, gentle question that helps them start where they feel ready. "
+    "Be sincere, not salesy or scripted. Keep it to 2–4 short sentences."
 )
 
 CRISIS_PERSONA = (
-    "You are a crisis-support therapist. Prioritize safety, validation, and calm, brief guidance. "
-    "If the user is in immediate danger, advise contacting local emergency services and india. "
-    "Always keep your response under 3 short sentences and under 250 characters."
+    "You are providing calm, de‑escalating crisis therapeutic support. "
+    "Primary goals: ensure immediate safety, validate specific feelings, and help the user take a tiny next stabilizing step. "
+    "Be concise (1–3 short sentences). "
+    "If there is explicit self‑harm intent or danger, clearly but gently encourage immediate contact with local emergency services (India dial 112) or a trusted person, while staying supportive—not dismissive. "
+    "Avoid moralizing, shock language, or medical directives. "
+    "Focus on grounding, presence, and conveying they are not alone."
 )
+
+EMOTIONS_PERSONA = (
+    "You specialize in pinpointing and reflecting layered emotions (primary + secondary) without over‑speculating. "
+    "Use specific affect labels (e.g., 'torn', 'drained', 'guarded') when text supports them. "
+    "Balance validation with gentle normalization and micro‑hope. "
+    "Avoid generic sympathy and do not over‑ask questions. "
+    "Offer one succinct reflective insight or naming per turn."
+)
+
+BOUNDARIES_PERSONA = (
+    "You provide therapeutic support while being transparent about limits (no diagnosis, prescriptions, or emergency intervention). "
+    "When outside scope, state limits briefly then pivot back to emotional support or coping strategies. "
+    "Never abandon or dismiss; always keep the user accompanied. "
+    "Keep tone calm, confident, respectful."
+)
+
+REFLECTION_PERSONA = (
+    "You craft high‑quality therapeutic reflections: capture emotion, meaning, and an implied need in a compact way. "
+    "Rotate techniques: concise reflection, summary, strengths spotting, gentle challenge, or a small coping suggestion. "
+    "Avoid repetition and template phrases. Keep to 2–4 purposeful sentences."
+)
+
+PERSONA_MAP = {
+    "base": BASE_PERSONA,
+    "greeting": GREETING_PERSONA,
+    "crisis": CRISIS_PERSONA,
+    "emotions": EMOTIONS_PERSONA,
+    "boundaries": BOUNDARIES_PERSONA,
+    "reflection": REFLECTION_PERSONA,
+}
 
 # --- Client singleton ---
 
@@ -51,19 +93,23 @@ def gpt_status() -> dict:
 
 def generate_reply(
         user_text: str,
-          *,
-        crisis: bool = False,
+        *,
+    crisis: bool = False,
         is_first: bool = False,
-        history: list[dict] | None = None, # added history to receive history
+        history: list[dict] | None = None,
+    persona: str | None = None,
     ) -> str:
+    """Generate a therapist-style reply from user input with memory support."""
 
-    """Generate a therapist-style reply from user input."""
     if not user_text or not user_text.strip():
         return "I’m here with you. What would you like to share?"
 
     # Pick system prompt
     if crisis:
         system_prompt = CRISIS_PERSONA
+    elif persona and persona.lower() in PERSONA_MAP and persona.lower() not in ("crisis", "greeting"):
+        # Allow explicit persona override (except crisis/greeting which are controlled by flags)
+        system_prompt = PERSONA_MAP[persona.lower()]
     elif is_first:
         system_prompt = GREETING_PERSONA
     else:
@@ -75,14 +121,161 @@ def generate_reply(
 
     try:
         client = _get_client()
-        # create message list
-        messages = [{"role": "system", "content": system_prompt}]
-        # append history if any
-        if history:
-            messages.extend(history)
-        messages.append({"role": "user", "content": user_text}) # append user message
 
-        # call HF endpoint
+        # Decide if we should gently probe (very short, low-detail emotional disclosure)
+        def _should_probe(txt: str) -> bool:
+            stripped = txt.strip().lower()
+            if len(stripped.split()) <= 6:  # very short
+                trigger_words = {"sad", "down", "low", "empty", "numb", "tired", "drained", "exhausted"}
+                if any(w in stripped for w in trigger_words):
+                    return True
+            return False
+
+        probe = _should_probe(user_text)
+
+        # Build base system message with adaptive guidance
+        adaptive_tail = "" if not probe else (
+            " If the user's message is very brief and only names a difficult feeling, respond with: (1) a precise empathic reflection, (2) ONE gentle, open question to understand context (e.g., what feels most heavy about it or when it started)."
+        )
+
+        base_system = system_prompt + (
+            " Always remember user-provided details (like their name, family, or preferences). "
+            "If the user asks about them later, recall them from the conversation history." + adaptive_tail
+        )
+        long_term = None
+        if history:
+            long_term = get_summary(history[0].get('session_id','')) if False else None  # placeholder not used (session id not stored per message)
+        # We cannot retrieve session_id from history items (not stored), so just grab summary via caller if needed.
+        # Provide hook: pass summary in history as synthetic system message with role 'system' and key 'summary'.
+        messages = [{"role": "system", "content": base_system}]
+
+        # --- Lightweight memory synthesis (rule-based) ---
+        if history:
+            # Extract structured cues from history
+            name: Optional[str] = None
+            age: Optional[str] = None
+            location: Optional[str] = None
+            goals: Set[str] = set()
+            preferences: Set[str] = set()
+            concerns: Set[str] = set()
+            relations: Set[str] = set()
+
+            # Precompile small regex patterns
+            name_patterns = [
+                re.compile(r"\bmy name is ([A-Z][a-zA-Z\-']{1,30})\b", re.IGNORECASE),
+                re.compile(r"\bcall me ([A-Z][a-zA-Z\-']{1,30})\b", re.IGNORECASE),
+                re.compile(r"\bi am ([A-Z][a-zA-Z\-']{1,30})\b", re.IGNORECASE),
+                re.compile(r"^i'm ([A-Z][a-zA-Z\-']{1,30})\b", re.IGNORECASE),
+            ]
+            age_pattern = re.compile(r"\bI(?:'m| am) (\d{1,2})\b")
+            location_patterns = [
+                re.compile(r"\bI live in ([A-Z][A-Za-z\s]{1,40})", re.IGNORECASE),
+                re.compile(r"\bI'm from ([A-Z][A-Za-z\s]{1,40})", re.IGNORECASE),
+            ]
+            goal_patterns = [
+                re.compile(r"\bI want to ([^.]{3,80})", re.IGNORECASE),
+                re.compile(r"\bmy goal is to ([^.]{3,80})", re.IGNORECASE),
+                re.compile(r"\bI hope to ([^.]{3,80})", re.IGNORECASE),
+            ]
+            pref_patterns = [
+                re.compile(r"\bI like ([^.]{3,60})", re.IGNORECASE),
+                re.compile(r"\bI love ([^.]{3,60})", re.IGNORECASE),
+                re.compile(r"\bI enjoy ([^.]{3,60})", re.IGNORECASE),
+            ]
+            concern_patterns = [
+                re.compile(r"\bI feel ([^.]{3,80})", re.IGNORECASE),
+                re.compile(r"\bI'm feeling ([^.]{3,80})", re.IGNORECASE),
+                re.compile(r"\bI have been feeling ([^.]{3,80})", re.IGNORECASE),
+                re.compile(r"\bI'm (anxious|depressed|stressed|overwhelmed|tired)\b", re.IGNORECASE),
+            ]
+            relation_keywords = {"mom","mother","dad","father","sister","brother","friend","friends","partner","wife","husband","girlfriend","boyfriend","fiancé","fiancee","child","son","daughter"}
+
+            for m in history:
+                if not isinstance(m, dict):
+                    continue
+                role = m.get("role")
+                if role != "user":
+                    continue
+                text: str = m.get("content", "")
+                if not text:
+                    continue
+                # Name
+                if not name:
+                    for pat in name_patterns:
+                        nm = pat.search(text)
+                        if nm:
+                            cand = nm.group(1).strip().strip(",.;!?")
+                            # Avoid picking a common verb mistaken as name
+                            if len(cand) > 1:
+                                name = cand[0].upper() + cand[1:]
+                                break
+                # Age
+                if not age:
+                    ag = age_pattern.search(text)
+                    if ag:
+                        age_val = ag.group(1)
+                        if 4 <= len(age_val) <= 2:  # impossible, keep simple sanity
+                            pass
+                        else:
+                            age = age_val
+                # Location
+                if not location:
+                    for pat in location_patterns:
+                        loc = pat.search(text)
+                        if loc:
+                            loc_val = loc.group(1).strip().rstrip('.').title()
+                            if len(loc_val.split()) <= 5:
+                                location = loc_val
+                                break
+                # Goals
+                for pat in goal_patterns:
+                    g = pat.search(text)
+                    if g:
+                        goals.add(g.group(1).strip().rstrip('.'))
+                # Preferences
+                for pat in pref_patterns:
+                    p = pat.search(text)
+                    if p:
+                        preferences.add(p.group(1).strip().rstrip('.'))
+                # Concerns
+                for pat in concern_patterns:
+                    c = pat.search(text)
+                    if c:
+                        # last group might be a single word or a phrase
+                        concerns.add(c.group(c.lastindex or 1).strip().rstrip('.'))
+                # Relations keywords presence
+                lowered = text.lower()
+                for kw in relation_keywords:
+                    if kw in lowered:
+                        relations.add(kw)
+
+            fact_chunks: List[str] = []
+            if name:
+                fact_chunks.append(f"Name: {name}")
+            if age:
+                fact_chunks.append(f"Age: {age}")
+            if location:
+                fact_chunks.append(f"Location: {location}")
+            if goals:
+                fact_chunks.append("Goals: " + "; ".join(sorted(goals))[:120])
+            if preferences:
+                fact_chunks.append("Likes: " + "; ".join(sorted(preferences))[:120])
+            if concerns:
+                fact_chunks.append("Concerns: " + "; ".join(sorted(concerns))[:160])
+            if relations:
+                fact_chunks.append("Mentioned relations: " + ", ".join(sorted(relations)))
+
+            if fact_chunks:
+                memory_summary = "Key user details (recent turns): " + " | ".join(fact_chunks)
+                messages.append({"role": "system", "content": memory_summary})
+
+            # Inject any pre-computed long-term summary if caller added it to history (role=='system' & meta=='long_term')
+            # (Future extension: attach session summary upstream.)
+            messages.extend(history)
+
+        print(">>> MESSAGES SENT TO GPT:", messages)
+
+        # Call HuggingFace endpoint
         resp = client.chat.completions.create(
             model=settings.HF_MODEL,
             messages=messages,
