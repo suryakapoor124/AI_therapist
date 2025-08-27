@@ -2,14 +2,31 @@ import React, { useState } from 'react'
 import ChatPanel from './components/ChatPanel'
 import VoicePanel from './components/VoicePanel'
 import ToggleTabs from './components/ToggleTabs'
+import CrisisOverlay from './components/CrisisOverlay'
 
 export default function App() {
-  const [mode, setMode] = useState('chat') // which panel is "active" for emphasis
+  const [mode, setMode] = useState('chat')
+  const [crisisMessage, setCrisisMessage] = useState(null)
+
+  const crisisActive = Boolean(crisisMessage)
 
   return (
-    <div className="min-h-screen py-10 px-4 flex items-center justify-center">
+    <div className="min-h-screen py-10 px-4 flex items-center justify-center relative">
+      {/* Crisis overlay */}
+      {crisisActive && (
+        <CrisisOverlay
+          message={crisisMessage}
+          onClose={() => setCrisisMessage(null)}
+        />
+      )}
+
       {/* OUTER BOX */}
-      <div className="w-full max-w-6xl bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-white/70 p-6 sm:p-8 overflow-visible">
+      <div
+        className={[
+          "w-full max-w-6xl bg-white/90 backdrop-blur rounded-3xl shadow-xl border border-white/70 p-6 sm:p-8 overflow-visible transition",
+          crisisActive ? "pointer-events-none blur-sm" : ""
+        ].join(" ")}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -21,26 +38,28 @@ export default function App() {
           <ToggleTabs mode={mode} onChange={setMode} />
         </div>
 
-        {/* TWO PANELS, side-by-side. The wrapper applies the scale/dim effect. */}
+        {/* TWO PANELS */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Chat wrapper */}
           <div
             className={[
-              'transition-all duration-300 ease-out transform-gpu',
-              mode === 'chat' ? 'scale-[1.02] z-10' : 'scale-[0.98] opacity-75 blur-[1px] pointer-events-none'
-            ].join(' ')}
+              "transition-all duration-300 ease-out transform-gpu",
+              mode === "chat"
+                ? "scale-[1.02] z-10"
+                : "scale-[0.98] opacity-75 blur-[1px] pointer-events-none"
+            ].join(" ")}
           >
-            <ChatPanel active={mode === 'chat'} />
+            <ChatPanel active={mode === "chat"} onCrisis={setCrisisMessage} />
           </div>
 
-          {/* Voice wrapper */}
           <div
             className={[
-              'transition-all duration-300 ease-out transform-gpu',
-              mode === 'voice' ? 'scale-[1.02] z-10' : 'scale-[0.98] opacity-75 blur-[1px] pointer-events-none'
-            ].join(' ')}
+              "transition-all duration-300 ease-out transform-gpu",
+              mode === "voice"
+                ? "scale-[1.02] z-10"
+                : "scale-[0.98] opacity-75 blur-[1px] pointer-events-none"
+            ].join(" ")}
           >
-            <VoicePanel active={mode === 'voice'} />
+            <VoicePanel active={mode === "voice"} onCrisis={setCrisisMessage} />
           </div>
         </div>
       </div>

@@ -1,14 +1,17 @@
 
 from typing import Optional
-import re
 
-# Limited per user request to ONLY these explicit triggers (word-boundary matched)
-CRISIS_PATTERNS = [
-    re.compile(r"\bsucide\b", re.IGNORECASE),
-    re.compile(r"\bsuicide\b", re.IGNORECASE),
-    re.compile(r"\brape\b", re.IGNORECASE),
-    re.compile(r"\bmurder\b", re.IGNORECASE),
-    re.compile(r"\bkill\b", re.IGNORECASE),  # note: will also match benign phrases like 'kill time'; adjust if needed
+
+CRISIS_KEYWORDS = [
+    "suicide",
+    "kill myself",
+    "end my life",
+    "i want to die",
+    "can't go on",
+    "hopeless",
+    "depressed",
+    "cut myself",
+    "hurt myself",
 ]
 
 def check_crisis(user_text: str) -> dict:
