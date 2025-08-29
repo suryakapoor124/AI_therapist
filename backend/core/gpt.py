@@ -1,4 +1,3 @@
-# backend/core/gpt.py
 from __future__ import annotations
 
 from typing import Optional, List, Dict, Set
@@ -7,7 +6,6 @@ from openai import OpenAI
 from config import settings
 from service.cache import get_summary
 
-# --- Prompts ---
 
 BASE_PERSONA = (
     "You are an expert, trauma‑informed therapeutic AI. Be deeply attentive, emotionally precise, and genuinely collaborative. "
