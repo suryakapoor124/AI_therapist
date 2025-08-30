@@ -1,43 +1,56 @@
 # 🧠 AI Therapist
 
-*A conversational companion designed to listen, reflect, and respond with empathy.*  
+*A conversational AI companion designed to listen, reflect, and respond with empathy — via text or voice.*
 
 ---
 
 ## 🌟 Overview
-AI Therapist is an application that provides therapy-like support through natural, interactive conversations.  
-Users can talk via **voice** or **text**, and the AI responds concisely with empathetic, personalized replies.  
-It is built to encourage self-expression while avoiding generic or cliché advice.  
+
+AI Therapist is an interactive web application that provides **therapy-style support** through natural conversations.
+Users can communicate via **voice** or **text**, receiving thoughtful, empathetic replies.
+The app encourages self-expression and reflection while avoiding generic or impersonal advice.
 
 ---
 
 ## ✨ Key Features
-- **Two Modes of Use**
-  - **Normal Mode** → Login/Signup with a personal profile.  
-  - **Anonymous Mode** → Instant access without registration.  
 
-- **Voice & Text Conversations**  
-  Seamless switch between speaking and typing. Responses are returned in **both text and realistic speech**.  
+* **Two Modes of Use**
 
-- **Authentic AI Dialogue**  
-  Therapist-style conversations that prioritize listening and gentle guidance.  
+  * **Normal Mode** → Login/Signup with a personal profile for mood tracking and progress.
+  * **Anonymous Mode** → Quick access without registration; sessions are private.
 
-- **Lightweight User Profile**  
-  Track moods and streaks in Normal Mode. Anonymous sessions remain private.  
+* **Voice & Text Conversations**
+  Users can type messages or speak naturally. Responses include **text** and **AI-generated speech**, giving a realistic conversational experience.
+
+* **Therapist-Style Interaction**
+  Engages users with **empathetic dialogue**, active listening cues, and gentle guidance rather than standard responses.
+
+* **Lightweight User Profile**
+  Tracks mood history, conversation streaks, and user session data (Normal Mode only).
+
+* **Real-Time Audio Feedback**
+  Voice responses are generated in real-time, providing a natural interaction flow.
+
+* **Crisis Detection & Alerts**
+  AI identifies critical situations and triggers alert messages to encourage seeking professional help.
 
 ---
 
-## 🏗️ High-Level Architecture
-- **Frontend**: User interface with chat and voice capabilities.  
-- **Backend**: FastAPI service managing conversation flow and integrations.  
-- **AI Model**: Large-scale language model generating therapist-like responses.  
-- **Speech Processing**: STT and TTS modules for voice interaction.  
-- **Database**: Lightweight storage for profile data in Normal Mode.  
+## 🏗️ Tech Stack & Architecture
+
+* **Frontend**: React + Tailwind CSS; fully responsive chat interface with **text bubbles**, **voice panel**, and **animated UI elements** like dynamic orb and mic controls.
+* **Backend**: FastAPI service handling conversation logic, session management, and integration with AI models.
+* **AI Model**: Large language model for therapist-style text generation.
+* **Speech Modules**:
+
+  * **STT (Speech-to-Text)** → Converts user voice input to text.
+  * **TTS (Text-to-Speech)** → Generates realistic voice replies.
+* **Database**: Lightweight storage for user profiles, session data, and conversation history in Normal Mode.
 
 ---
 
 ## ⚠️ Disclaimer
-AI Therapist is **not a replacement for professional therapy**.  
-It is a supportive tool designed to encourage reflection and self-expression.  
 
----
+**AI Therapist is not a substitute for professional therapy.**
+It is a supportive tool designed to encourage reflection, self-expression, and emotional awareness.
+In case of crisis, users should seek help from licensed mental health professionals.
