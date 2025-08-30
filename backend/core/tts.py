@@ -23,10 +23,16 @@ def synthesize_speech(text: str) -> str | None:
     try:
         tts_response = sarvam_client.text_to_speech.convert(
             text=text,
-            target_language_code="hi-IN",   # switch to "en-IN" if mostly English
-            speaker="manisha",
+            target_language_code="en-IN",
+            speaker="karun",
+            pitch=0,
+            pace=1,
+            loudness=1,
+            speech_sample_rate=22050,
+            enable_preprocessing=False,
             model="bulbul:v2"
         )
+        print(f"[TTS] API Response: {tts_response}")
         return tts_response.audios[0]  
     except Exception as e:
         print(f"[TTS] Error: {e}")
