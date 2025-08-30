@@ -164,6 +164,12 @@ export default function ChatPanel({ active, onCrisis }) {
                         maxRows={6}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault() // prevent adding a new line
+                                onSubmit(e)         // submit the message
+                            }
+                        }}
                         placeholder="Type a message…"
                         className="flex-1 rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition resize-none overflow-hidden"
                     />
