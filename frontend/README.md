@@ -10,6 +10,8 @@ A React-based frontend application for AI Therapist, built with Vite and Tailwin
 - Framer Motion
 - Axios
 - Lucide React Icons
+- react-textarea-autosize
+
 
 ## Prerequisites
 

@@ -4,6 +4,7 @@ import MessageBubble from './MessageBubble'
 import { sendTextMessage } from '../lib/apiClient'
 import { motion, AnimatePresence } from 'framer-motion'
 import useSession from '../hooks/useSession'
+import TextareaAutosize from 'react-textarea-autosize'
 
 export default function ChatPanel({ active, onCrisis }) {
     const [sessionId, setSessionId] = useSession()
@@ -125,10 +126,11 @@ export default function ChatPanel({ active, onCrisis }) {
                             )}
 
                             <div>
-                                <MessageBubble role={m.role} text={m.text} />
-                                <p className="text-xs text-gray-400 mt-1">
-                                    {m.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
+                                <MessageBubble
+                                    role={m.role}
+                                    text={m.text}
+                                    time={m.time}
+                                />
                             </div>
 
                             {m.role === 'assistant' && (
@@ -150,25 +152,29 @@ export default function ChatPanel({ active, onCrisis }) {
                     ))}
                 </AnimatePresence>
 
-                {loading && <MessageBubble role="assistant" text="Thinking…" typing />}
+                {loading && <MessageBubble role="assistant" text="Thinking…" typing time={new Date()} />}
                 <div ref={endRef} />
             </div>
 
             {/* Input pinned at bottom */}
-            <form onSubmit={onSubmit} className="mt-4 flex items-center gap-3">
-                <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Type a message…"
-                    className="flex-1 rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition"
-                />
-                <button
-                    type="submit"
-                    className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-3 text-white shadow-md hover:bg-indigo-600 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!input.trim() || loading}
-                >
-                    <Send className="w-5 h-5" />
-                </button>
+            <form onSubmit={onSubmit} className="mt-4 flex items-center justify-center gap-3">
+                <div className="flex w-2/3 items-center gap-2">
+                    <TextareaAutosize
+                        minRows={1}
+                        maxRows={6}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type a message…"
+                        className="flex-1 rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition resize-none overflow-hidden"
+                    />
+                    <button
+                        type="submit"
+                        className="inline-flex items-center justify-center rounded-xl bg-indigo-500 px-4 py-3 text-white shadow-md hover:bg-indigo-600 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={!input.trim() || loading}
+                    >
+                        <Send className="w-5 h-5" />
+                    </button>
+                </div>
             </form>
         </div>
     )

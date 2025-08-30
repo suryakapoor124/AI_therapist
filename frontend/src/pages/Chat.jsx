@@ -1,11 +1,12 @@
-import React, { useState } from 'react'
-import ChatPanel from '../components/ChatPanel'
-import VoicePanel from '../components/VoicePanel'
-import ToggleTabs from '../components/ToggleTabs'
-import CrisisOverlay from '../components/CrisisOverlay'
+import React, { useState } from "react"
+import ChatPanel from "../components/ChatPanel"
+import VoicePanel from "../components/VoicePanel"
+import ToggleTabs from "../components/ToggleTabs"
+import CrisisOverlay from "../components/CrisisOverlay"
+import { motion } from "framer-motion"
 
 export default function App() {
-  const [mode, setMode] = useState('chat')
+  const [mode, setMode] = useState("chat")
   const [crisisMessage, setCrisisMessage] = useState(null)
 
   const crisisActive = Boolean(crisisMessage)
@@ -21,7 +22,7 @@ export default function App() {
 
       <div
         className={[
-          "w-full max-w-6xl bg-slate-900/90 backdrop-blur rounded-3xl shadow-2xl border border-slate-700/50 p-6 sm:p-8 overflow-visible transition",
+          "w-full max-w-6xl bg-slate-900/90 backdrop-blur rounded-3xl shadow-2xl border border-slate-700/50 p-6 sm:p-8 overflow-hidden transition",
           crisisActive ? "pointer-events-none blur-sm" : ""
         ].join(" ")}
       >
@@ -35,28 +36,37 @@ export default function App() {
           <ToggleTabs mode={mode} onChange={setMode} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div
-            className={[
-              "transition-all duration-300 ease-out transform-gpu",
-              mode === "chat"
-                ? "scale-[1.02] z-10"
-                : "scale-[0.98] opacity-75 blur-[1px] pointer-events-none"
-            ].join(" ")}
+        {/* Panels container */}
+        <div className="relative">
+          {/* Chat Panel */}
+          <motion.div
+            key="chat"
+            initial={false}
+            animate={{
+              opacity: mode === "chat" ? 1 : 0,
+              x: mode === "chat" ? 0 : -30,
+            }}
+            transition={{ duration: 0.4 }}
+            className={`w-full transition-all ${mode !== "chat" ? "pointer-events-none absolute top-0 left-0" : ""
+              }`}
           >
-            <ChatPanel active={mode === "chat"} onCrisis={setCrisisMessage} />
-          </div>
+            <ChatPanel active={true} onCrisis={setCrisisMessage} />
+          </motion.div>
 
-          <div
-            className={[
-              "transition-all duration-300 ease-out transform-gpu",
-              mode === "voice"
-                ? "scale-[1.02] z-10"
-                : "scale-[0.98] opacity-75 blur-[1px] pointer-events-none"
-            ].join(" ")}
+          {/* Voice Panel */}
+          <motion.div
+            key="voice"
+            initial={false}
+            animate={{
+              opacity: mode === "voice" ? 1 : 0,
+              x: mode === "voice" ? 0 : 30,
+            }}
+            transition={{ duration: 0.4 }}
+            className={`w-full transition-all ${mode !== "voice" ? "pointer-events-none absolute top-0 left-0" : ""
+              }`}
           >
-            <VoicePanel active={mode === "voice"} onCrisis={setCrisisMessage} />
-          </div>
+            <VoicePanel active={true} onCrisis={setCrisisMessage} />
+          </motion.div>
         </div>
       </div>
     </div>
