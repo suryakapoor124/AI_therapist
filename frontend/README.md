@@ -81,6 +81,9 @@ This will generate a `dist` folder with the built application.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
+
+## We are open for contributor.
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details
