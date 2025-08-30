@@ -67,6 +67,7 @@ async def chat_text(payload: ChatRequest):
     maybe_update_summary(session_id)
 
     # --- Generate Audio (TTS) ---
+    print(f"[TTS] Input text: {reply_text}")
     reply_audio_base64 = synthesize_speech(reply_text)
 
     return {
@@ -135,7 +136,10 @@ async def chat_voice(
     maybe_update_summary(session_id)
 
     # --- Generate Audio (TTS) ---
+    print(f"[TTS] Input text: {reply_text}")
     reply_audio_base64 = synthesize_speech(reply_text)
+
+    print(f"[TTS] API Response: {reply_audio_base64}")
 
     return {
         "reply_text": reply_text,
