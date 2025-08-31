@@ -49,6 +49,9 @@ The app encourages self-expression and reflection while avoiding generic or impe
 
 ---
 
+## Contributor
+
+
 ## ⚠️ Disclaimer
 
 **AI Therapist is not a substitute for professional therapy.**
