@@ -32,7 +32,6 @@ def synthesize_speech(text: str) -> str | None:
             enable_preprocessing=False,
             model="bulbul:v2"
         )
-        print(f"[TTS] API Response: {tts_response}")
         return tts_response.audios[0]  
     except Exception as e:
         print(f"[TTS] Error: {e}")
