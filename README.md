@@ -50,7 +50,7 @@ The app encourages self-expression and reflection while avoiding generic or impe
 ---
 
 ## Contributor
-
+We are open for contributor, we will love to collaborator
 
 ## ⚠️ Disclaimer
 
