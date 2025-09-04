@@ -1,7 +1,9 @@
 import axios from 'axios'
 
 // Backend base URL
-const BASE_URL = 'http://localhost:8000'
+// Use environment variable (Vite convention: VITE_*)
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 
 // --------------------- TEXT ---------------------
 export async function sendTextMessage(text, isFirst = false, sessionId = null) {
