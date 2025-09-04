@@ -3,11 +3,12 @@ from typing import Optional
 
 
 CRISIS_KEYWORDS = [
-    "hopeless",
     "going to murder someone",
     "going to commit suicide",
     "i feel like to kill someone",
     "i'm going to rape someone",
+    "i'm going to do something really bad",
+    "i want to attack someone."
 ]
 
 def check_crisis(user_text: str) -> dict:
