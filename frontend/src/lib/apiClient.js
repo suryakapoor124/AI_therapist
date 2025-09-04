@@ -1,11 +1,10 @@
 import axios from 'axios'
 
-// Backend base URL
-// Use environment variable (Vite convention: VITE_*)
+
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 
-// --------------------- TEXT ---------------------
+
 export async function sendTextMessage(text, isFirst = false, sessionId = null) {
     try {
         const payload = {
@@ -22,7 +21,7 @@ export async function sendTextMessage(text, isFirst = false, sessionId = null) {
     }
 }
 
-// --------------------- VOICE ---------------------
+
 export async function transcribeAudio(blob, isFirst = false, sessionId = null) {
     try {
         const formData = new FormData()

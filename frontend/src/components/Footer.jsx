@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="flex items-center gap-4">
           <a href="#" className="text-sm text-gray-300 hover:text-white">Terms</a>
           <a href="#" className="text-sm text-gray-300 hover:text-white">Privacy</a>
-          <a href="#" className="text-sm text-gray-300 hover:text-white">GitHub</a>
+          <a href="https://github.com/Prem-sharma34/AI_therapist" className="text-sm text-gray-300 hover:text-white">GitHub</a>
         </div>
       </div>
     </footer>

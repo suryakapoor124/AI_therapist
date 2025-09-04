@@ -1,17 +1,14 @@
-# backend/core/tts.py
-
 import os
 from sarvamai import SarvamAI
 from dotenv import load_dotenv
 
-# Load env
 load_dotenv()
 SARVAM_KEY = os.getenv("SARVAM_API_KEY")
 
 if not SARVAM_KEY:
     raise ValueError("SARVAM_API_KEY not found in environment!")
 
-# Initialize Sarvam client
+
 sarvam_client = SarvamAI(api_subscription_key=SARVAM_KEY)
 
 

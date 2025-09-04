@@ -122,7 +122,7 @@ def gpt_status() -> dict:
         "model": settings.HF_MODEL,
     }
 
-# --- Main reply generator ---
+
 
 def generate_reply(
         user_text: str,
@@ -137,28 +137,25 @@ def generate_reply(
     if not user_text or not user_text.strip():
         return "I’m here with you. What would you like to share?"
 
-    # Pick system prompt
+
     if crisis:
         system_prompt = CRISIS_PERSONA
     elif persona and persona.lower() in PERSONA_MAP and persona.lower() not in ("crisis", "greeting"):
-        # Allow explicit persona override (except crisis/greeting which are controlled by flags)
         system_prompt = PERSONA_MAP[persona.lower()]
     elif is_first:
         system_prompt = GREETING_PERSONA
     else:
         system_prompt = BASE_PERSONA
 
-    # If no token, soft fallback
     if not settings.HF_TOKEN:
         return "I’m here with you. What feels heaviest right now?"
 
     try:
         client = _get_client()
 
-        # Decide if we should gently probe (very short, low-detail emotional disclosure)
         def _should_probe(txt: str) -> bool:
             stripped = txt.strip().lower()
-            if len(stripped.split()) <= 6:  # very short
+            if len(stripped.split()) <= 6: 
                 trigger_words = {"sad", "down", "low", "empty", "numb", "tired", "drained", "exhausted"}
                 if any(w in stripped for w in trigger_words):
                     return True
@@ -166,7 +163,6 @@ def generate_reply(
 
         probe = _should_probe(user_text)
 
-        # Build base system message with adaptive guidance
         adaptive_tail = "" if not probe else (
             " If the user's message is very brief and only names a difficult feeling, respond with: (1) a precise empathic reflection, (2) ONE gentle, open question to understand context (e.g., what feels most heavy about it or when it started)."
         )
@@ -177,7 +173,7 @@ def generate_reply(
         )
         long_term = None
         if history:
-            long_term = get_summary(history[0].get('session_id','')) if False else None  # placeholder not used (session id not stored per message)
+            long_term = get_summary(history[0].get('session_id','')) if False else None 
         # We cannot retrieve session_id from history items (not stored), so just grab summary via caller if needed.
         # Provide hook: pass summary in history as synthetic system message with role 'system' and key 'summary'.
         messages = [{"role": "system", "content": base_system}]
@@ -232,26 +228,26 @@ def generate_reply(
                 text: str = m.get("content", "")
                 if not text:
                     continue
-                # Name
+    
                 if not name:
                     for pat in name_patterns:
                         nm = pat.search(text)
                         if nm:
                             cand = nm.group(1).strip().strip(",.;!?")
-                            # Avoid picking a common verb mistaken as name
+                           
                             if len(cand) > 1:
                                 name = cand[0].upper() + cand[1:]
                                 break
-                # Age
+         
                 if not age:
                     ag = age_pattern.search(text)
                     if ag:
                         age_val = ag.group(1)
-                        if 4 <= len(age_val) <= 2:  # impossible, keep simple sanity
+                        if 4 <= len(age_val) <= 2:  
                             pass
                         else:
                             age = age_val
-                # Location
+    
                 if not location:
                     for pat in location_patterns:
                         loc = pat.search(text)
@@ -260,23 +256,22 @@ def generate_reply(
                             if len(loc_val.split()) <= 5:
                                 location = loc_val
                                 break
-                # Goals
+      
                 for pat in goal_patterns:
                     g = pat.search(text)
                     if g:
                         goals.add(g.group(1).strip().rstrip('.'))
-                # Preferences
+      
                 for pat in pref_patterns:
                     p = pat.search(text)
                     if p:
                         preferences.add(p.group(1).strip().rstrip('.'))
-                # Concerns
+       
                 for pat in concern_patterns:
                     c = pat.search(text)
                     if c:
-                        # last group might be a single word or a phrase
                         concerns.add(c.group(c.lastindex or 1).strip().rstrip('.'))
-                # Relations keywords presence
+
                 lowered = text.lower()
                 for kw in relation_keywords:
                     if kw in lowered:
@@ -302,13 +297,11 @@ def generate_reply(
                 memory_summary = "Key user details (recent turns): " + " | ".join(fact_chunks)
                 messages.append({"role": "system", "content": memory_summary})
 
-            # Inject any pre-computed long-term summary if caller added it to history (role=='system' & meta=='long_term')
-            # (Future extension: attach session summary upstream.)
+
             messages.extend(history)
 
         print(">>> MESSAGES SENT TO GPT:", messages)
 
-        # Call HuggingFace endpoint
         resp = client.chat.completions.create(
             model=settings.HF_MODEL,
             messages=messages,

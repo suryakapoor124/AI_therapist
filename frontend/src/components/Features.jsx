@@ -1,4 +1,3 @@
-// components/Features.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { useScroll, useTransform, motion as m } from "framer-motion";

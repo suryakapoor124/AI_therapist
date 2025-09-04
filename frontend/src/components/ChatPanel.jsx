@@ -15,7 +15,6 @@ export default function ChatPanel({ active, onCrisis }) {
     const hasFetched = useRef(false)
     const audioRef = useRef(null)
 
-    // Fetch greeting only once
     useEffect(() => {
         if (!hasFetched.current) {
             fetchGreeting()

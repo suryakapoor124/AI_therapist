@@ -27,7 +27,7 @@ cd AI_therapist/backend
 2. Create and activate virtual environment:
 ```bash
 python -m venv venv
-source venv/bin/activate  # For Linux
+source venv/bin/activate  
 ```
 
 3. Install dependencies:

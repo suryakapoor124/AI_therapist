@@ -1,9 +1,8 @@
-// components/Hero.jsx
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import heroIllustration from "../assets/Robot.png"; // replace with your illustration
+import heroIllustration from "../assets/Robot.png";
 import { Link } from "react-router-dom";
 
 

@@ -9,46 +9,35 @@ from core.stt import transcribe_audio
 from core.tts import synthesize_speech
 from service.cache import get_history, append_message, session_exists, maybe_update_summary, get_summary
 
-# Router definition
+
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
-# -----------------------------
-# Request Models
-# -----------------------------
 class ChatRequest(BaseModel):
     user_input: str
     is_first: bool = False
     session_id: Optional[str] = None
 
 
-# -----------------------------
-# Text Endpoint
-# -----------------------------
+
 @router.post("/text")
 async def chat_text(payload: ChatRequest):
     """Handles text input from user"""
 
-    # --- Session Management ---
+
     if payload.session_id and session_exists(payload.session_id):
-        # Continue existing session
         is_first = False
         session_id = payload.session_id
     else:
-        # Create new session
         is_first = payload.is_first
         session_id = str(uuid.uuid4())
 
-    # --- Crisis Check ---
     crisis_result = check_crisis(payload.user_input)
     crisis_flag = crisis_result["crisis"]
 
-    # --- Save User Message ---
     append_message(session_id, "user", payload.user_input)
 
-    # --- Retrieve History & Generate Reply ---
     history = get_history(session_id)
-    # If we have a long-term summary, prepend it as synthetic system message for context
     summary = get_summary(session_id)
     if summary:
         augmented_history = [{"role": "system", "content": summary}] + history
@@ -62,11 +51,9 @@ async def chat_text(payload: ChatRequest):
         history=augmented_history,
     )
 
-    # --- Save Assistant Reply ---
     append_message(session_id, "assistant", reply_text)
     maybe_update_summary(session_id)
 
-    # --- Generate Audio (TTS) ---
     reply_audio_base64 = synthesize_speech(reply_text)
 
     return {
@@ -78,9 +65,6 @@ async def chat_text(payload: ChatRequest):
     }
 
 
-# -----------------------------
-# Voice Endpoint
-# -----------------------------
 @router.post("/voice")
 async def chat_voice(
     file: UploadFile = File(...),
@@ -89,14 +73,12 @@ async def chat_voice(
 ):
     """Handles voice input"""
 
-    # --- Session Management ---
     if session_id and session_exists(session_id):
         is_first = False
     else:
         is_first = is_first
         session_id = str(uuid.uuid4())
 
-    # --- Speech-to-Text ---
     user_text = transcribe_audio(file)
 
     if not user_text:
@@ -108,14 +90,11 @@ async def chat_voice(
             "session_id": session_id,
         }
 
-    # --- Crisis Check ---
     crisis_result = check_crisis(user_text)
     crisis_flag = crisis_result["crisis"]
 
-    # --- Save User Message ---
     append_message(session_id, "user", user_text)
 
-    # --- Retrieve History & Generate Reply ---
     history = get_history(session_id)
     summary = get_summary(session_id)
     if summary:
@@ -130,11 +109,9 @@ async def chat_voice(
         history=augmented_history,
     )
 
-    # --- Save Assistant Reply ---
     append_message(session_id, "assistant", reply_text)
     maybe_update_summary(session_id)
 
-    # --- Generate Audio (TTS) ---
     reply_audio_base64 = synthesize_speech(reply_text)
 
 

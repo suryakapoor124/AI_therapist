@@ -29,9 +29,7 @@ def session_exists(session_id: str) -> bool:
     history = get_history(session_id)
     return len(history) > 0
 
-# ----------------------
-# Summary Memory Helpers
-# ----------------------
+
 
 def get_summary(session_id: str) -> Optional[str]:
     return _summary_store.get(session_id)

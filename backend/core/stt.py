@@ -25,7 +25,7 @@ def transcribe_audio(file: UploadFile) -> str | None:
             audio.export(tmp_wav.name, format="wav")
             wav_path = tmp_wav.name
 
-        # Run STT
+ 
         with sr.AudioFile(wav_path) as source:
             audio_data = recognizer.record(source)
 
