@@ -1,10 +1,10 @@
+// components/Hero.jsx
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import heroIllustration from "../assets/Robot.png";
+import heroIllustration from "../assets/ai.png"; // replace with your illustration
 import { Link } from "react-router-dom";
-
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -85,8 +85,18 @@ export default function Hero() {
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
 
-    gsap.to(imageRef.current, { x: x * 18, y: y * 12, duration: 0.6, ease: "power3.out" });
-    gsap.to(titleRef.current, { x: x * 8, y: y * 6, duration: 0.6, ease: "power3.out" });
+    gsap.to(imageRef.current, {
+      x: x * 18,
+      y: y * 12,
+      duration: 0.6,
+      ease: "power3.out",
+    });
+    gsap.to(titleRef.current, {
+      x: x * 8,
+      y: y * 6,
+      duration: 0.6,
+      ease: "power3.out",
+    });
   };
 
   return (
@@ -94,7 +104,7 @@ export default function Hero() {
       id="hero"
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-[85vh] flex items-center justify-center px-6 pt-28 pb-12 overflow-hidden" 
+      className="relative min-h-[85vh] flex items-center justify-center px-6 pt-24 pb-12 overflow-hidden"
       // ↑ increased pt-28 so image starts below navbar
     >
       {/* background radial glows */}
@@ -114,7 +124,8 @@ export default function Hero() {
             transition={{ duration: 0.9, ease: "easeOut" }}
             whileHover={{
               scale: 1.02,
-              textShadow: "0 0 20px rgba(167,85,247,0.7), 0 0 36px rgba(236,72,153,0.35)",
+              textShadow:
+                "0 0 20px rgba(167,85,247,0.7), 0 0 36px rgba(236,72,153,0.35)",
             }}
           >
             AI Therapist
@@ -126,11 +137,12 @@ export default function Hero() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35, duration: 0.8, ease: "easeOut" }}
           >
-            Gentle, evidence-informed conversations that help you reflect, cope, and feel better — anytime, anywhere.
+            Gentle, evidence-informed conversations that help you reflect, cope,
+            and feel better — anytime, anywhere.
           </motion.p>
 
           <div className="mt-8 flex gap-4">
-            {/* <motion.a
+            <motion.a
               href="/chat"
               className="inline-flex items-center gap-3 px-6 py-3 rounded-full font-semibold bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg"
               whileHover={{
@@ -139,15 +151,12 @@ export default function Hero() {
               }}
               transition={{ type: "spring", stiffness: 300 }}
             >
+                <Link
+                to="/chat">
                 Start a Conversation
-            </motion.a> */}
-            <Link
-  to="/chat"
-  className="inline-flex items-center gap-3 px-6 py-3 rounded-full font-semibold bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg"
->
-  Start a Conversation
-</Link>
-
+              </Link>
+            </motion.a>
+  
             <motion.a
               href="#features"
               className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-white/6 border border-white/8"
@@ -178,17 +187,12 @@ export default function Hero() {
             className="absolute -inset-6 rounded-3xl bg-gradient-to-br from-indigo-700/30 to-pink-600/20 blur-2xl opacity-60 transform rotate-3"
           />
 
-          <div ref={imageRef} className="relative z-20 w-full max-w-md">
-            <div className="rounded-3xl overflow-hidden p-6 bg-white/4 backdrop-blur-md border border-white/6 shadow-2xl">
+          <div ref={imageRef} className="relative z-20 w-full max-w-xl">
+            <div className="rounded-3xl overflow-hidden bg-white/4 backdrop-blur-md border border-white/6 shadow-2xl h-[480px]">
               <img
                 src={heroIllustration}
                 alt="Therapist illustration"
-                className="w-full h-auto"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  e.currentTarget.src =
-                    "https://images.unsplash.com/photo-1531259683007-016a2a5a9c52?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=1d244bfb2c0db5e6da1b0bdf0f6f0a7c";
-                }}
+                className="w-full h-full object-cover"
               />
             </div>
 
@@ -197,8 +201,12 @@ export default function Hero() {
                 AI
               </div>
               <div>
-                <div className="text-sm text-gray-200 font-semibold">Compassionate Listening</div>
-                <div className="text-xs text-gray-400">Non-judgmental, supportive replies.</div>
+                <div className="text-sm text-gray-200 font-semibold">
+                  Compassionate Listening
+                </div>
+                <div className="text-xs text-gray-400">
+                  Non-judgmental, supportive replies.
+                </div>
               </div>
             </div>
           </div>

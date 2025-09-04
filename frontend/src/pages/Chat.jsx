@@ -4,6 +4,7 @@ import VoicePanel from "../components/VoicePanel"
 import ToggleTabs from "../components/ToggleTabs"
 import CrisisOverlay from "../components/CrisisOverlay"
 import { motion } from "framer-motion"
+import { Link } from "react-router-dom";
 
 export default function App() {
   const [mode, setMode] = useState("chat")
@@ -29,7 +30,7 @@ export default function App() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-              AI-Therapist
+              <Link to="/">AI-Therapist</Link>
             </h1>
             <p className="text-slate-400 text-sm">Compassion powered by AI</p>
           </div>
