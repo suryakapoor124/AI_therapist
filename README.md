@@ -5,7 +5,7 @@
 ---
 
 ![Landing Page](frontend/src/assets/landing.png)  
-
+[🌐 Live Demo](https://ai-therapistt.netlify.app/)
 
 ## 🌟 Overview
 
