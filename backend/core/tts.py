@@ -21,12 +21,12 @@ def synthesize_speech(text: str) -> str | None:
         tts_response = sarvam_client.text_to_speech.convert(
             text=text,
             target_language_code="en-IN",
-            speaker="karun",
-            pitch=0,
-            pace=1,
-            loudness=1,
+            speaker="manisha",
+            pitch=0.3,
+            pace=0.9,
+            loudness=0.5,
             speech_sample_rate=22050,
-            enable_preprocessing=False,
+            enable_preprocessing=True,
             model="bulbul:v2"
         )
         return tts_response.audios[0]  
