@@ -19,7 +19,6 @@ def check_crisis(user_text: str) -> dict:
     """
 
     text_lower = user_text.lower().strip()
-    print(f"DEBUG: user_text={user_text!r}, text_lower={text_lower!r}") 
 
     for keyword in CRISIS_KEYWORDS:
         if keyword in text_lower:
