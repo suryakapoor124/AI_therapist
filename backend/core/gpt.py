@@ -300,7 +300,7 @@ def generate_reply(
 
             messages.extend(history)
 
-        print(">>> MESSAGES SENT TO GPT:", messages)
+       
 
         resp = client.chat.completions.create(
             model=settings.HF_MODEL,
