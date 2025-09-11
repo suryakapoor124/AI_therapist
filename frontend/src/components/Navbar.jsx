@@ -1,4 +1,3 @@
-// components/Navbar.jsx
 import React from "react";
 
 export default function Navbar() {
@@ -8,9 +7,9 @@ export default function Navbar() {
                     px-6 py-2.5 flex items-center justify-between shadow-md">
       {/* Logo */}
       <a href="#hero" className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+        {/* <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
           <span className="text-white font-bold text-base">I</span>
-        </div>
+        </div> */}
         <span className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-blue-300 to-pink-300">
           AI Therapist
         </span>

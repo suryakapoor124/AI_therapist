@@ -61,8 +61,8 @@ It is **not professional therapy**, but rather a **safe, private, and reflective
 
 ### 1. Clone the Repository
 ```bash
-git clone <your-repo-link>
-cd ai-therapist
+git clone https://github.com/Prem-sharma34/AI_therapist.git
+cd AI_therapist
 ```
 
 ### 2.Frontend setup
