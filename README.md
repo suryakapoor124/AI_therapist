@@ -1,37 +1,49 @@
-# 🧠 AI Therapist
+# 🧠 AI-Therapist
 
-*Empathetic AI companion for voice and text conversations — private, session-based, and reflective.*
+*An empathetic AI mental health companion for text and voice conversations — designed for privacy-first, session-based use.*
 
 ---
 
 ![Landing Page](frontend/src/assets/landing.png)  
 [🌐 Live Demo](https://ai-therapistt.netlify.app/)
 
+---
+
 ## 🌟 Overview
 
-AI Therapist is an **interactive web application** that allows users to communicate with an AI in **text or voice**. It provides **empathetic, reflective dialogue** while maintaining **session-based privacy**.  
+**AI-Therapist** is a web-based mental health companion that enables users to engage in **empathetic conversations** via **chat or voice**.  
+It is **not professional therapy**, but rather a **safe, private, and reflective space** where users can share their feelings without judgment.  
 
-**Key Highlights:**
-- Two modes: **Normal Mode**(still working on it) and **Anonymous Mode** (quick, private access).  
-- Conversations are **cached temporarily in session storage** and destroyed after the session.  
-- Supports **voice input/output** and **text chat**.  
-- Built with **React Vite frontend**, **FastAPI backend**, using **GPT-OSS-20B** and **Sarvami AI API** for conversational intelligence.
+- **Privacy-first:** No databases, no permanent logs. All conversations live only in the session cache and vanish once closed.  
+- **Empathy-focused:** Responses are designed to feel human, warm, and supportive rather than robotic.  
+- **Voice & Text:** Supports natural speech in English and Indian languages.  
+- **Accessible:** Works directly in the browser with no signup required.  
 
 ---
 
 ## ✨ Key Features
 
-- **Two Modes of Use**  
-  - **Chat / Voice:** Communicate naturally with AI via text or speech.  
-  - **Landing Pages:** Welcome page for app overview and mode selection.  
+- **Anonymous Mode (implemented)**  
+  - Start a conversation instantly, without identity or signup.  
+  - Conversations exist only in the current browser session.  
 
-- **Privacy & Session Handling**  
-  - Conversations stored temporarily in session cache.  
-  - Data is destroyed when the session ends.  
+- **Normal Mode (planned)**  
+  - Optional mode to allow non-anonymous entry (not yet implemented).  
 
-- **Empathetic AI Interaction**  
-  - Reflective and supportive responses (not professional therapy).  
-  - Crisis detection with alerts encouraging users to seek help.
+- **Voice + Text Interaction**  
+  - Sarvam AI powers **text-to-speech (TTS)** for better Indian language audio output.  
+  - Speech-to-text support for natural voice conversations.  
+
+- **Therapist Personas**  
+  - Multiple conversation styles (existential, crisis, reflection, emotions, boundaries).  
+  - Adaptive responses with validation, reflection, and gentle probing.  
+
+- **Crisis Safeguards**  
+  - If severe distress indicators are present, the AI encourages contacting professional or emergency help (e.g., India: dial **112**).  
+
+- **Privacy by Design**  
+  - No database, no cloud storage.  
+  - All memory is **session-based** — conversations disappear after closing the tab.  
 
 ---
 
@@ -39,45 +51,86 @@ AI Therapist is an **interactive web application** that allows users to communic
 
 - **Frontend:** React (Vite) + Tailwind CSS  
 - **Backend:** FastAPI  
-- **AI Model:** GPT-OSS-20B  
-- **API:** Sarvami AI API Key for voice   
-- **Data Handling:** Session storage / cache (no persistent data in Anonymous Mode)
+- **Model:** [GPT-OSS 20B](https://huggingface.co/), accessed via Hugging Face API  
+- **Voice:** Sarvam AI TTS (for Indian languages)  
+- **Session Handling:** Browser session storage (no persistent storage)  
 
 ---
 
 ## ⚙️ Installation & Setup
 
-Basic setup instructions:  
-
+### 1. Clone the Repository
 ```bash
-# Clone the repo
 git clone <your-repo-link>
 cd ai-therapist
+```
 
-  For full **frontend** and **backend** installation steps, environment variables, and configuration, please check the respective READMEs:
+### 2.Frontend setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-  - [frontend/README.md](frontend/README.md)  
-  - [backend/README.md](backend/README.md)  
+### 3.Backend setup
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+        or
+fastapi dev main.py
+```
+
+### 4. Environment Variables
+  Create a .env file in backend/ with:
+  ```ini
+CORS_ALLOW_ORIGINS=http://localhost:5173
+SARVAM_API_KEY=your_sarvam_api_key_here
+HF_BASE_URL=https://router.huggingface.co/v1
+HF_TOKEN=your_huggingface_token_here
+HF_MODEL=gpt-oss-20b
+```
+## 🚨 Disclaimers
+
+- **Not a substitute for professional help**  
+  AI-Therapist is an empathy companion, not licensed therapy or medical advice.  
+
+- **Privacy limits**  
+  While we do not store data ourselves, messages are sent to Hugging Face’s servers for AI inference.  
+  This means usage is not fully local.  
+
+- **Crisis handling**  
+  AI-Therapist may suggest reaching out to helplines, but cannot provide emergency intervention.  
+
+## 🔍 Known Limitations
+
+- **Normal Mode incomplete**  
+  Only anonymous mode works. This was intentional to prioritize privacy-first use.  
+
+- **Latency risk**  
+  GPT-OSS 20B can be slow on Hugging Face. No smaller fallback model yet.  
+  
+- **No persistent memory**  
+  We deliberately avoid storing user data, even if it means sacrificing long-term tracking.  
 
 ---
 
 ## 👥 Contributing
 
-We welcome contributors!
+We welcome contributions to improve AI-Therapist.  
 
-**Suggested guidelines for now:**
-
-1. Fork the repository and create a branch for your feature/fix.  
-2. Submit a pull request with a clear description of changes.  
-3. Keep code style consistent with existing code.  
-
-> Note: You can create a proper `CONTRIBUTING.md` file later with detailed rules.
+1. Fork the repository and create a feature branch.  
+2. Follow existing code style.  
+3. Submit a PR with a clear description.  
+4. Open issues for bugs, feature requests, or enhancements.  
 
 ---
 
 ## 📜 License
 
-Currently **not licensed**.
+This project is licensed under the **MIT License** — free to use, modify, and distribute with attribution.  
+
+See the [LICENSE](LICENSE) file for details.  
 
 
 
