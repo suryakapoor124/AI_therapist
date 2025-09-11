@@ -94,13 +94,7 @@ HF_MODEL=gpt-oss-20b
 
 - **Not a substitute for professional help**  
   AI-Therapist is an empathy companion, not licensed therapy or medical advice.  
-
-- **Privacy limits**  
-  While we do not store data ourselves, messages are sent to Hugging Face’s servers for AI inference.  
-  This means usage is not fully local.  
-
-- **Crisis handling**  
-  AI-Therapist may suggest reaching out to helplines, but cannot provide emergency intervention.  
+ 
 
 ## 🔍 Known Limitations
 
